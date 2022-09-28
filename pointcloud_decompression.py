@@ -43,7 +43,7 @@ def reconstruct_patch(occ, height, color, orientation, patch_size):
 
     global2local = np.array([e1, e2, e3])
 
-    points = points @ global2local.T + p
+    points = points @ global2local + p
 
     return points, color[indices]
 

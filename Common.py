@@ -54,7 +54,7 @@ class Voxel:
         e3 = n
 
         self.global2local = np.array([e1, e2, e3])
-        points = points @ self.global2local
+        points = points @ self.global2local.T
         self.compute_occupancy(points)
         self.compute_heightmap(points)
         self.compute_colormap(points, cloud.rgb[self.indices])

@@ -50,7 +50,7 @@ def quantisize(img, name):
     
 
 if __name__ == "__main__":
-    path = "3DML_urban_point_cloud.xyz"
+    path = "sample.xyz"
     pc = load_pointcloud(path)
     #show_cloud(pc)
 
