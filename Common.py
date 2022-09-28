@@ -13,9 +13,10 @@ class Voxel:
         self.indices.append(idx)
 
     def compute_occupancy(self, points):
-        patch_img,_,_ = np.histogram2d(points[:,0], points[:,1],bins=[16,16])
+        patch_img,bins_x,bins_y = np.histogram2d(points[:,0], points[:,1],bins=[16,16])
         patch_img[np.where(patch_img > 0)] = 1
         self.occupancy = patch_img
+        self.patch_size = [bins_x[0], bins_x[-1], bins_y[0], bins_y[-1]]
 
     def compute_heightmap(self, points):
         occur,_,_ = np.histogram2d(points[:,0], points[:,1],bins=[16,16])
@@ -52,8 +53,8 @@ class Voxel:
         e2 = normalize(np.cross(n, e1))
         e3 = n
 
-        self.local2global = np.array([e1, e2, e3])
-        points = points @ self.local2global.T
+        self.global2local = np.array([e1, e2, e3])
+        points = points @ self.global2local
         self.compute_occupancy(points)
         self.compute_heightmap(points)
         self.compute_colormap(points, cloud.rgb[self.indices])
@@ -162,7 +163,7 @@ def fit_normal(points):
     return normalize(eigv[:,0])
 
 def load_pointcloud(path):
-    point_cloud = np.loadtxt(path, skiprows=1, max_rows=1000000)
+    point_cloud = np.loadtxt(path, skiprows=1)
 
     return PointCloud(point_cloud)
 

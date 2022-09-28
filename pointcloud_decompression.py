@@ -24,11 +24,11 @@ def split_maps(occupancy_, height_, color_, quantization):
 
     return occupancy_maps, height_maps, color_maps
 
-def reconstruct_patch(occ, height, color, orientation, voxel_size):
+def reconstruct_patch(occ, height, color, orientation, patch_size):
     indices = np.where(occ == 1)
     points = np.hstack([indices[0].reshape(-1,1), indices[1].reshape(-1,1)]).astype(float)
-    points -= np.mean(points, axis=0)
-    points *= voxel_size
+    points[:,0] = points[:,0]/16.0 * (patch_size[1] - patch_size[0]) + patch_size[0]
+    points[:,1] = points[:,1]/16.0 * (patch_size[3] - patch_size[2]) + patch_size[2]
     heights = height[indices].reshape(-1,1)
     points = np.hstack([points, heights])
     n = orientation[3:]
@@ -41,9 +41,9 @@ def reconstruct_patch(occ, height, color, orientation, voxel_size):
     e2 = normalize(np.cross(n, e1))
     e3 = n
 
-    local2global = np.array([e1, e2, e3])
+    global2local = np.array([e1, e2, e3])
 
-    points = points @ local2global + p
+    points = points @ global2local.T + p
 
     return points, color[indices]
 
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     xyz = []
     rgb = []
     for id in range(len(quantization_data['orientation'])):
-        pos, col = reconstruct_patch(occupancy_maps[id], height_maps[id], color_maps[id], quantization_data['orientation'][id], quantization_data['voxel_size'])
+        pos, col = reconstruct_patch(occupancy_maps[id], height_maps[id], color_maps[id], quantization_data['orientation'][id], quantization_data['patch_size'][id])
         xyz.append(pos)
         rgb.append(col)
 

@@ -1,3 +1,4 @@
+from unittest.mock import patch
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
@@ -16,12 +17,13 @@ def stitch_images(grid):
     output_height = np.zeros((grid_size*16, grid_size*16))
     output_col = np.zeros((grid_size*16, grid_size*16, 3))
     orientation_data = np.zeros((num_imgs, 6))
+    patch_sizes = np.zeros((num_imgs, 4))
 
     for y in range(grid_size):
         for x in range(grid_size):
             idx = x + grid_size * y
             if idx >= num_imgs:
-                return output_occ, output_height, output_col, orientation_data
+                return output_occ, output_height, output_col, patch_sizes, orientation_data
 
             vxl = grid.data[grid.filled_voxels[idx]]
             occ_img = vxl.occupancy
@@ -33,9 +35,10 @@ def stitch_images(grid):
             color_img = vxl.colormap
             output_col[y * 16 : y*16 + 16, x * 16 : x*16 + 16] = color_img
 
-            orientation_data[idx] = np.array([*vxl.position, *vxl.local2global[:,-1]])
+            orientation_data[idx] = np.array([*vxl.position, *vxl.global2local[-1]])
+            patch_sizes[idx] = vxl.patch_size
 
-    return output_occ, output_height, output_col, orientation_data
+    return output_occ, output_height, output_col, patch_sizes, orientation_data
 
 def quantisize(img, name):
     amin = np.amin(img)
@@ -47,18 +50,18 @@ def quantisize(img, name):
     
 
 if __name__ == "__main__":
-    path = "sample.xyz"
+    path = "3DML_urban_point_cloud.xyz"
     pc = load_pointcloud(path)
     #show_cloud(pc)
 
-    grid = VoxelGrid(300)
+    grid = VoxelGrid(256)
     if exists(path + ".bin"):
         with open(path + ".bin", "rb") as file:
             grid = pickle.load(file)
     else:
         grid.fill(pc)
-        with open(path + ".bin", "wb") as file:
-            pickle.dump(grid, file)
+        #with open(path + ".bin", "wb") as file:
+        #    pickle.dump(grid, file)
 
     #points = pc.xyz[grid.data[22156].indices]
     #col = pc.rgb[grid.data[22156].indices]
@@ -66,10 +69,10 @@ if __name__ == "__main__":
     #show_cloud(points, col, point_size=1)
 
     grid.processAll(pc)
-    #xyz = points @ grid.data[22156].local2global.T
+    #xyz = points @ grid.data[22156].global2local
     #show_cloud_projection(xyz, col, point_size=10)
 
-    occupancy, height, color, orientation = stitch_images(grid)
+    occupancy, height, color, patch_sizes, orientation = stitch_images(grid)
     occupancy = (occupancy*255.0).astype(np.uint8)
     height = (quantisize(height, "height")*255).astype(np.uint8)
     color = (color).astype(np.uint8)
@@ -88,5 +91,6 @@ if __name__ == "__main__":
 
     quantization_data['voxel_size'] = grid.voxel_length
     quantization_data['orientation'] = orientation
+    quantization_data['patch_size'] = patch_sizes
     with open("quantization.bin", "wb") as file:
         pickle.dump(quantization_data, file)
