@@ -54,6 +54,15 @@ def quantisize(img, name):
     quantization_data[name] = (amin, amax)
 
     return (img - amin) / (amax - amin)
+
+def blurr(img, occupancy):
+    img_copy = img.copy()
+    for _ in range(3):
+        img_copy = cv2.boxFilter(img_copy, -1, (5,5))
+
+    valid = np.where(occupancy == 255)
+    img_copy[valid] = img[valid]
+    return img_copy
     
 def compress(cloud_path = "sample.xyz", grid_size = 128, encoding=".png"):
     for path in os.listdir("output"):
@@ -79,6 +88,10 @@ def compress(cloud_path = "sample.xyz", grid_size = 128, encoding=".png"):
     occupancy = (occupancy*255.0).astype(np.uint8)
     height = (quantisize(height, "height")*255).astype(np.uint8)
     color = (color).astype(np.uint8)
+
+    #Blurring actually increases file size?
+    #height = blurr(height, occupancy)
+    #color = blurr(color, occupancy)
 
     plt.imshow(occupancy)
     plt.show()
