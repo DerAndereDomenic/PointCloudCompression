@@ -7,6 +7,7 @@ from os.path import exists
 import cv2
 from Common import *
 import os
+from itertools import product
 
 quantization_data = {}
 
@@ -20,24 +21,23 @@ def stitch_images(grid):
     orientation_data = np.zeros((num_imgs, 6))
     patch_sizes = np.zeros((num_imgs, 4))
 
-    for y in range(grid_size):
-        for x in range(grid_size):
-            idx = x + grid_size * y
-            if idx >= num_imgs:
-                return output_occ, output_height, output_col, patch_sizes, orientation_data
+    for y, x in tqdm(list(product(range(grid_size), range(grid_size)))):
+        idx = x + grid_size * y
+        if idx >= num_imgs:
+            return output_occ, output_height, output_col, patch_sizes, orientation_data
 
-            vxl = grid.data[grid.filled_voxels[idx]]
-            occ_img = vxl.occupancy
-            output_occ[y * 16 : y*16 + 16, x * 16 : x*16 + 16] = occ_img
+        vxl = grid.data[grid.filled_voxels[idx]]
+        occ_img = vxl.occupancy
+        output_occ[y * 16 : y*16 + 16, x * 16 : x*16 + 16] = occ_img
 
-            height_img = vxl.height
-            output_height[y * 16 : y*16 + 16, x * 16 : x*16 + 16] = height_img
+        height_img = vxl.height
+        output_height[y * 16 : y*16 + 16, x * 16 : x*16 + 16] = height_img
 
-            color_img = vxl.colormap
-            output_col[y * 16 : y*16 + 16, x * 16 : x*16 + 16] = color_img
+        color_img = vxl.colormap
+        output_col[y * 16 : y*16 + 16, x * 16 : x*16 + 16] = color_img
 
-            orientation_data[idx] = np.array([*vxl.position, *vxl.global2local[-1]])
-            patch_sizes[idx] = vxl.patch_size
+        orientation_data[idx] = np.array([*vxl.position, *vxl.global2local[-1]])
+        patch_sizes[idx] = vxl.patch_size
 
     return output_occ, output_height, output_col, patch_sizes, orientation_data
 

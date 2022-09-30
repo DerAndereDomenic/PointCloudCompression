@@ -1,9 +1,9 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from tqdm import tqdm
 from Common import *
 import cv2
 import pickle
+from itertools import product
 
 def split_maps(occupancy_, height_, color_, quantization):
     occupancy_maps = []
@@ -16,11 +16,10 @@ def split_maps(occupancy_, height_, color_, quantization):
 
     grid_size = len(occupancy)//16
 
-    for y in range(grid_size):
-        for x in range(grid_size):
-            occupancy_maps.append(occupancy[y * 16 : y*16 + 16, x * 16 : x*16 + 16])
-            height_maps.append(height[y * 16 : y*16 + 16, x * 16 : x*16 + 16])
-            color_maps.append(color[y * 16 : y*16 + 16, x * 16 : x*16 + 16])
+    for y, x in tqdm(list(product(range(grid_size), range(grid_size)))):
+        occupancy_maps.append(occupancy[y * 16 : y*16 + 16, x * 16 : x*16 + 16])
+        height_maps.append(height[y * 16 : y*16 + 16, x * 16 : x*16 + 16])
+        color_maps.append(color[y * 16 : y*16 + 16, x * 16 : x*16 + 16])
 
     return occupancy_maps, height_maps, color_maps
 
@@ -59,7 +58,7 @@ def decompress(encoding = ".png"):
     
     xyz = []
     rgb = []
-    for id in range(len(quantization_data['orientation'])):
+    for id in tqdm(range(len(quantization_data['orientation']))):
         pos, col = reconstruct_patch(occupancy_maps[id], height_maps[id], color_maps[id], quantization_data['orientation'][id], quantization_data['patch_size'][id])
         xyz.append(pos)
         rgb.append(col)
