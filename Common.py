@@ -38,10 +38,6 @@ class Voxel:
 
     def process(self, cloud):
         points = cloud.xyz[self.indices]
-        """plt.figure()
-        ax = plt.subplot(projection="3d")
-        ax.scatter(points[:,0], points[:,1], points[:,2])
-        plt.show()"""
         self.position = np.mean(points,axis=0)
         points -= self.position
         n = fit_normal(points)
@@ -77,7 +73,6 @@ class VoxelGrid:
             voxel = self.position2voxel(p)
             idx = self.voxel2index(voxel)
             self.data[idx].push(i)
-        #22156
 
     def getVoxelByIndex(self, index):
         return self.data[index]

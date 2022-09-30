@@ -69,21 +69,14 @@ if __name__ == "__main__":
         #with open(path + ".bin", "wb") as file:
         #    pickle.dump(grid, file)
 
-    #points = pc.xyz[grid.data[22156].indices]
-    #col = pc.rgb[grid.data[22156].indices]
-
-    #show_cloud(points, col, point_size=1)
 
     grid.processAll(pc)
-    #xyz = points @ grid.data[22156].global2local
-    #show_cloud_projection(xyz, col, point_size=10)
 
     occupancy, height, color, patch_sizes, orientation = stitch_images(grid)
     occupancy = (occupancy*255.0).astype(np.uint8)
     height = (quantisize(height, "height")*255).astype(np.uint8)
     color = (color).astype(np.uint8)
 
-    #export as bitmap for now to get loss free data for now
     plt.imshow(occupancy)
     plt.show()
     cv2.imwrite("output/occupancy.png", occupancy)
