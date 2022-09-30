@@ -47,10 +47,10 @@ def reconstruct_patch(occ, height, color, orientation, patch_size):
 
     return points, color[indices]
 
-if __name__ == "__main__":
+def decompress(encoding = ".png"):
     occupancy_map = cv2.imread("output/occupancy.png", 0)
-    height_map = cv2.imread("output/height.png", 0)
-    color_map = cv2.imread("output/color.png")
+    height_map = cv2.imread("output/height" + encoding, 0)
+    color_map = cv2.imread("output/color" + encoding)
 
     with open("output/quantization.bin", "rb") as file:
         quantization_data = pickle.load(file)
@@ -71,4 +71,5 @@ if __name__ == "__main__":
 
     np.savetxt("decompressed.xyz", pointcloud_data, header="X Y Z R G B", fmt="%1.4e %.14e %1.4e %d %d %d")
 
-    
+if __name__ == "__main__":
+    decompress(".png")

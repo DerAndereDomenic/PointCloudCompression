@@ -49,18 +49,15 @@ def quantisize(img, name):
 
     return (img - amin) / (amax - amin)
     
-
-if __name__ == "__main__":
-
+def compress(path = "sample.xyz", grid_size = 128, encoding=".png"):
     for path in os.listdir("output"):
         os.remove("output/" + path)
 
-    path = "sample.xyz"
     pc = load_pointcloud(path)
     pc.storeBinary()
     #show_cloud(pc)
 
-    grid = VoxelGrid(128)
+    grid = VoxelGrid(grid_size)
     if exists(path + ".bin"):
         with open(path + ".bin", "rb") as file:
             grid = pickle.load(file)
@@ -83,13 +80,17 @@ if __name__ == "__main__":
 
     plt.imshow(height)
     plt.show()
-    cv2.imwrite("output/height.png", height)
+    cv2.imwrite("output/height" + encoding, height)
     plt.imshow(color)
     plt.show()
-    cv2.imwrite("output/color.png", color)
+    cv2.imwrite("output/color" + encoding, color)
 
     quantization_data['voxel_size'] = grid.voxel_length
     quantization_data['orientation'] = orientation
     quantization_data['patch_size'] = patch_sizes
     with open("output/quantization.bin", "wb") as file:
         pickle.dump(quantization_data, file)
+
+if __name__ == "__main__":
+    compress("sample.xyz", 128, ".png")
+    
