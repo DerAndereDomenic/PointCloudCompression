@@ -47,13 +47,13 @@ def stitch_images(grid):
 
     return output_occ, output_height, output_col, patch_sizes, orientation_data
 
-def quantisize(img, name):
-    amin = np.amin(img)
-    amax = np.amax(img)
+def quantisize(data, name):
+    amin = np.amin(data)
+    amax = np.amax(data)
 
     quantization_data[name] = (amin, amax)
 
-    return (img - amin) / (amax - amin)
+    return (data - amin) / (amax - amin)
 
 def blurr(img, occupancy):
     img_copy = img.copy()
@@ -104,7 +104,6 @@ def compress(cloud_path = "sample.xyz", grid_size = 128, encoding=".png"):
     plt.show()
     cv2.imwrite("output/color" + encoding, color)
 
-    quantization_data['voxel_size'] = grid.voxel_length
     quantization_data['orientation'] = orientation
     quantization_data['patch_size'] = patch_sizes
     with open("output/quantization.bin", "wb") as file:
