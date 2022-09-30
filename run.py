@@ -4,7 +4,7 @@ import evaluate
 
 if __name__ == "__main__":
     encoding = ".jp2"
-    cloud = "sample.xyz"
+    cloud = "3DML_urban_point_cloud.xyz"
     grid_size = 128
 
     print("========COMPRESSION========")

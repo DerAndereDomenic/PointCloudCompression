@@ -102,13 +102,12 @@ def compress(cloud_path = "sample.xyz", grid_size = 128, encoding=".png"):
     orientation = quantisize(orientation, "orientation")
     patch_sizes = quantisize(patch_sizes, "patch_size")
     
-    position = ((position*65535).astype(np.uint16)).view(np.uint8)
-    orientation = (orientation*255).astype(np.uint8)
-    patch_sizes = (patch_sizes*255).astype(np.uint8)
+    #position = ((position*65535).astype(np.uint16)).view(np.uint8)
+    #orientation = (orientation*255).astype(np.uint8)
+    #patch_sizes = (patch_sizes*255).astype(np.uint8)
 
     quantisized_data = np.hstack([position, orientation, patch_sizes])
     quantisized_data.tofile("output/patch_information.bin")
-    print(quantisized_data.shape)
 
     with open("output/quantization.bin", "wb") as file:
         pickle.dump(quantization_data, file)

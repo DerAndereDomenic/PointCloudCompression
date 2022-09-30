@@ -57,14 +57,14 @@ def decompress(encoding = ".png"):
     with open("output/quantization.bin", "rb") as file:
         quantization_data = pickle.load(file)
 
-    patch_information = np.fromfile("output/patch_information.bin", dtype=np.uint8).reshape(-1, 13)
-    position = patch_information[:,:6].view(np.uint16)
-    orientation = patch_information[:,6:9]
-    patch_size = patch_information[:,9:]
+    patch_information = np.fromfile("output/patch_information.bin", dtype=np.float64).reshape(-1, 10)
+    position = patch_information[:,:3]
+    orientation = patch_information[:,3:6]
+    patch_size = patch_information[:,6:]
 
-    position = position.astype(float)/65535
-    orientation = orientation.astype(float)/255
-    patch_size = patch_size.astype(float)/255
+    #position = position.astype(float)/65535
+    #orientation = orientation.astype(float)/255
+    #patch_size = patch_size.astype(float)/255
 
     position = dequantasize(position, quantization_data['position'][0], quantization_data['position'][1])
     orientation = dequantasize(orientation, quantization_data['orientation'][0], quantization_data['orientation'][1])
@@ -88,4 +88,4 @@ def decompress(encoding = ".png"):
     np.savetxt("decompressed.xyz", pointcloud_data, header="X Y Z R G B", fmt="%1.4e %.14e %1.4e %d %d %d")
 
 if __name__ == "__main__":
-    decompress(".png")
+    decompress(".jp2")
