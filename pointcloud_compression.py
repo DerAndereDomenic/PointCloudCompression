@@ -49,17 +49,17 @@ def quantisize(img, name):
 
     return (img - amin) / (amax - amin)
     
-def compress(path = "sample.xyz", grid_size = 128, encoding=".png"):
+def compress(cloud_path = "sample.xyz", grid_size = 128, encoding=".png"):
     for path in os.listdir("output"):
         os.remove("output/" + path)
 
-    pc = load_pointcloud(path)
+    pc = load_pointcloud(cloud_path)
     pc.storeBinary()
     #show_cloud(pc)
 
     grid = VoxelGrid(grid_size)
-    if exists(path + ".bin"):
-        with open(path + ".bin", "rb") as file:
+    if exists(cloud_path + ".bin"):
+        with open(cloud_path + ".bin", "rb") as file:
             grid = pickle.load(file)
     else:
         grid.fill(pc)
