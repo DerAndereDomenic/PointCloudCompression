@@ -21,12 +21,18 @@ def stitch_images(grid):
     orientation_data = np.zeros((num_imgs, 6))
     patch_sizes = np.zeros((num_imgs, 4))
 
+    #Sort maps according to hue...
+    voxels = [grid.data[grid.filled_voxels[x + grid_size * y]] for y, x in list(product(range(grid_size), range(grid_size))) if x + grid_size * y < num_imgs]
+    colormaps = [vxl.colormap for vxl in voxels]
+    hue_maps = np.array([cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_RGB2HSV)[...,0].flatten() for img in colormaps])
+    hues_sorted = np.argsort(np.mean(hue_maps, axis=-1)).flatten()
+
     for y, x in tqdm(list(product(range(grid_size), range(grid_size)))):
         idx = x + grid_size * y
         if idx >= num_imgs:
             return output_occ, output_height, output_col, patch_sizes, orientation_data
 
-        vxl = grid.data[grid.filled_voxels[idx]]
+        vxl = voxels[hues_sorted[idx]]#grid.data[grid.filled_voxels[idx]]
         occ_img = vxl.occupancy
         output_occ[y * 16 : y*16 + 16, x * 16 : x*16 + 16] = occ_img
 
