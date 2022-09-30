@@ -153,6 +153,9 @@ class PointCloud:
 
         return np.array([min_x, min_y, min_z]), np.array([max_x, max_y, max_z])
 
+    def storeBinary(self):
+        self.data.astype(np.float32).tofile("model.bin")
+
 def normalize(x):
     return x/np.linalg.norm(x)
 

@@ -2,4 +2,6 @@
 *.jpg
 *.png
 *.bin
+*.jp2
+output/*
 __pycache__

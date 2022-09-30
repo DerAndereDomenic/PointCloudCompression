@@ -48,11 +48,11 @@ def reconstruct_patch(occ, height, color, orientation, patch_size):
     return points, color[indices]
 
 if __name__ == "__main__":
-    occupancy_map = cv2.imread("occupancy.png", 0)
-    height_map = cv2.imread("height.png", 0)
-    color_map = cv2.imread("color.png")
+    occupancy_map = cv2.imread("output/occupancy.png", 0)
+    height_map = cv2.imread("output/height.png", 0)
+    color_map = cv2.imread("output/color.png")
 
-    with open("quantization.bin", "rb") as file:
+    with open("output/quantization.bin", "rb") as file:
         quantization_data = pickle.load(file)
 
     occupancy_maps, height_maps, color_maps = split_maps(occupancy_map, height_map, color_map, quantization_data['height'])
