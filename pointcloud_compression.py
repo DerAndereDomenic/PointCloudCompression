@@ -6,6 +6,7 @@ import pickle
 from os.path import exists
 import cv2
 from Common import *
+import os
 
 quantization_data = {}
 
@@ -50,6 +51,10 @@ def quantisize(img, name):
     
 
 if __name__ == "__main__":
+
+    for path in os.listdir("output"):
+        os.remove("output/" + path)
+
     path = "sample.xyz"
     pc = load_pointcloud(path)
     pc.storeBinary()
