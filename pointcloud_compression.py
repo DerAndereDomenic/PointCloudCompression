@@ -1,3 +1,4 @@
+from turtle import position
 from unittest.mock import patch
 import numpy as np
 import matplotlib.pyplot as plt
@@ -18,7 +19,8 @@ def stitch_images(grid):
     output_occ = np.zeros((grid_size*16, grid_size*16))
     output_height = np.zeros((grid_size*16, grid_size*16))
     output_col = np.zeros((grid_size*16, grid_size*16, 3))
-    orientation_data = np.zeros((num_imgs, 6))
+    position_data = np.zeros((num_imgs, 3))
+    orientation_data = np.zeros((num_imgs, 3))
     patch_sizes = np.zeros((num_imgs, 4))
 
     #Sort maps according to hue...
@@ -30,7 +32,7 @@ def stitch_images(grid):
     for y, x in tqdm(list(product(range(grid_size), range(grid_size)))):
         idx = x + grid_size * y
         if idx >= num_imgs:
-            return output_occ, output_height, output_col, patch_sizes, orientation_data
+            break
 
         vxl = voxels[hues_sorted[idx]]#grid.data[grid.filled_voxels[idx]]
         occ_img = vxl.occupancy
@@ -42,10 +44,11 @@ def stitch_images(grid):
         color_img = vxl.colormap
         output_col[y * 16 : y*16 + 16, x * 16 : x*16 + 16] = color_img
 
-        orientation_data[idx] = np.array([*vxl.position, *vxl.global2local[-1]])
+        position_data[idx] = vxl.position
+        orientation_data[idx] = vxl.global2local[-1]
         patch_sizes[idx] = vxl.patch_size
 
-    return output_occ, output_height, output_col, patch_sizes, orientation_data
+    return output_occ, output_height, output_col, patch_sizes, position_data, orientation_data
 
 def quantisize(data, name):
     amin = np.amin(data)
@@ -78,13 +81,13 @@ def compress(cloud_path = "sample.xyz", grid_size = 128, encoding=".png"):
             grid = pickle.load(file)
     else:
         grid.fill(pc)
-        #with open(path + ".bin", "wb") as file:
+        #with open(cloud_path + ".bin", "wb") as file:
         #    pickle.dump(grid, file)
 
 
     grid.processAll(pc)
 
-    occupancy, height, color, patch_sizes, orientation = stitch_images(grid)
+    occupancy, height, color, patch_sizes, position, orientation = stitch_images(grid)
     occupancy = (occupancy*255.0).astype(np.uint8)
     height = (quantisize(height, "height")*255).astype(np.uint8)
     color = (color).astype(np.uint8)
@@ -93,19 +96,30 @@ def compress(cloud_path = "sample.xyz", grid_size = 128, encoding=".png"):
     #height = blurr(height, occupancy)
     #color = blurr(color, occupancy)
 
-    plt.imshow(occupancy)
-    plt.show()
+    #plt.imshow(occupancy)
+    #plt.show()
     cv2.imwrite("output/occupancy.png", occupancy)
 
-    plt.imshow(height)
-    plt.show()
+    #plt.imshow(height)
+    #plt.show()
     cv2.imwrite("output/height" + encoding, height)
-    plt.imshow(color)
-    plt.show()
+
+    #plt.imshow(color)
+    #plt.show()
     cv2.imwrite("output/color" + encoding, color)
 
-    quantization_data['orientation'] = orientation
-    quantization_data['patch_size'] = patch_sizes
+    position = quantisize(position, "position")
+    orientation = quantisize(orientation, "orientation")
+    patch_sizes = quantisize(patch_sizes, "patch_size")
+    
+    position = ((position*65535).astype(np.uint16)).view(np.uint8)
+    orientation = (orientation*255).astype(np.uint8)
+    patch_sizes = (patch_sizes*255).astype(np.uint8)
+
+    quantisized_data = np.hstack([position, orientation, patch_sizes])
+    quantisized_data.tofile("output/patch_information.bin")
+    print(quantisized_data.shape)
+
     with open("output/quantization.bin", "wb") as file:
         pickle.dump(quantization_data, file)
 

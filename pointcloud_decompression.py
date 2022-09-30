@@ -23,15 +23,17 @@ def split_maps(occupancy_, height_, color_, quantization):
 
     return occupancy_maps, height_maps, color_maps
 
-def reconstruct_patch(occ, height, color, orientation, patch_size):
+def reconstruct_patch(occ, height, color, position, orientation, patch_size):
     indices = np.where(occ == 1)
     points = np.hstack([indices[0].reshape(-1,1), indices[1].reshape(-1,1)]).astype(float)
-    points[:,0] = points[:,0]/16.0 * (patch_size[1] - patch_size[0]) + patch_size[0]
-    points[:,1] = points[:,1]/16.0 * (patch_size[3] - patch_size[2]) + patch_size[2]
+    #points[:,0] = points[:,0]/16.0 * (patch_size[1] - patch_size[0]) + patch_size[0]
+    #points[:,1] = points[:,1]/16.0 * (patch_size[3] - patch_size[2]) + patch_size[2]
+    points[:,0] = dequantasize(points[:,0]/16, patch_size[0], patch_size[1])
+    points[:,1] = dequantasize(points[:,1]/16, patch_size[2], patch_size[3])
     heights = height[indices].reshape(-1,1)
     points = np.hstack([points, heights])
-    n = orientation[3:]
-    p = orientation[:3]
+    n = orientation
+    p = position
 
     if abs(n[0]-1) < 1e-10:
         e1 = normalize(np.cross(n, np.array([0,1,0])))
@@ -46,6 +48,9 @@ def reconstruct_patch(occ, height, color, orientation, patch_size):
 
     return points, color[indices]
 
+def dequantasize(data, min, max):
+    return data * (max - min) + min
+
 def decompress(encoding = ".png"):
     occupancy_map = cv2.imread("output/occupancy.png", 0)
     height_map = cv2.imread("output/height" + encoding, 0)
@@ -54,12 +59,26 @@ def decompress(encoding = ".png"):
     with open("output/quantization.bin", "rb") as file:
         quantization_data = pickle.load(file)
 
+    patch_information = np.fromfile("output/patch_information.bin", dtype=np.uint8).reshape(-1, 13)
+    position = patch_information[:,:6].view(np.uint16)
+    orientation = patch_information[:,6:9]
+    patch_size = patch_information[:,9:]
+    
+    position = position.astype(float)/65535
+    orientation = orientation.astype(float)/255
+    patch_size = patch_size.astype(float)/255
+
+    position = dequantasize(position, quantization_data['position'][0], quantization_data['position'][1])
+    orientation = dequantasize(orientation, quantization_data['orientation'][0], quantization_data['orientation'][1])
+    patch_size = dequantasize(patch_size, quantization_data['patch_size'][0], quantization_data['patch_size'][1])
+
+
     occupancy_maps, height_maps, color_maps = split_maps(occupancy_map, height_map, color_map, quantization_data['height'])
     
     xyz = []
     rgb = []
-    for id in tqdm(range(len(quantization_data['orientation']))):
-        pos, col = reconstruct_patch(occupancy_maps[id], height_maps[id], color_maps[id], quantization_data['orientation'][id], quantization_data['patch_size'][id])
+    for id in tqdm(range(len(patch_information))):
+        pos, col = reconstruct_patch(occupancy_maps[id], height_maps[id], color_maps[id], position[id], orientation[id], patch_size[id])
         xyz.append(pos)
         rgb.append(col)
 
