@@ -26,8 +26,6 @@ def split_maps(occupancy_, height_, color_, quantization):
 def reconstruct_patch(occ, height, color, position, orientation, patch_size):
     indices = np.where(occ == 1)
     points = np.hstack([indices[0].reshape(-1,1), indices[1].reshape(-1,1)]).astype(float)
-    #points[:,0] = points[:,0]/16.0 * (patch_size[1] - patch_size[0]) + patch_size[0]
-    #points[:,1] = points[:,1]/16.0 * (patch_size[3] - patch_size[2]) + patch_size[2]
     points[:,0] = dequantasize(points[:,0]/16, patch_size[0], patch_size[1])
     points[:,1] = dequantasize(points[:,1]/16, patch_size[2], patch_size[3])
     heights = height[indices].reshape(-1,1)
@@ -63,7 +61,7 @@ def decompress(encoding = ".png"):
     position = patch_information[:,:6].view(np.uint16)
     orientation = patch_information[:,6:9]
     patch_size = patch_information[:,9:]
-    
+
     position = position.astype(float)/65535
     orientation = orientation.astype(float)/255
     patch_size = patch_size.astype(float)/255

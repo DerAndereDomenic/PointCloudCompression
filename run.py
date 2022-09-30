@@ -3,7 +3,7 @@ import pointcloud_decompression
 import evaluate
 
 if __name__ == "__main__":
-    encoding = ".png"
+    encoding = ".jp2"
     cloud = "sample.xyz"
     grid_size = 128
 

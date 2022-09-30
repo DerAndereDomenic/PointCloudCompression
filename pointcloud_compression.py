@@ -1,7 +1,4 @@
-from turtle import position
-from unittest.mock import patch
 import numpy as np
-import matplotlib.pyplot as plt
 from tqdm import tqdm
 import pickle
 from os.path import exists
@@ -73,7 +70,6 @@ def compress(cloud_path = "sample.xyz", grid_size = 128, encoding=".png"):
 
     pc = load_pointcloud(cloud_path)
     pc.storeBinary()
-    #show_cloud(pc)
 
     grid = VoxelGrid(grid_size)
     if exists(cloud_path + ".bin"):
@@ -96,16 +92,10 @@ def compress(cloud_path = "sample.xyz", grid_size = 128, encoding=".png"):
     #height = blurr(height, occupancy)
     #color = blurr(color, occupancy)
 
-    #plt.imshow(occupancy)
-    #plt.show()
     cv2.imwrite("output/occupancy.png", occupancy)
 
-    #plt.imshow(height)
-    #plt.show()
     cv2.imwrite("output/height" + encoding, height)
 
-    #plt.imshow(color)
-    #plt.show()
     cv2.imwrite("output/color" + encoding, color)
 
     position = quantisize(position, "position")
