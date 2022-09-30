@@ -14,10 +14,7 @@ def compression_ratio():
     print(f"Compressed filesize: {np.round(file_size_compressed/(1024**2),2)} MB")
     print(f"Compression ratio: {np.round(file_size_compressed/file_size_uncompressed * 100, 2)} %")
 
-def symmetric_rmse():
-    pc_uncompressed = load_pointcloud("sample.xyz")
-    pc_compressed = load_pointcloud("decompressed.xyz")
-
+def distance_error(pc_uncompressed, pc_compressed):
     P = pc_uncompressed.xyz
     Q = pc_compressed.xyz
 
@@ -32,6 +29,33 @@ def symmetric_rmse():
 
     RMSE_SNN = np.sqrt(0.5 * MSE_PQ + 0.5 * MSE_QP)
     print(f"RMSE_NN: {RMSE_SNN}")
+
+def color_error(pc_uncompressed, pc_compressed):
+    P = pc_uncompressed.xyz
+    Q = pc_compressed.xyz
+
+    tree_P = cKDTree(P)
+    tree_Q = cKDTree(Q)
+
+    _,query_P = tree_Q.query(P, k=1)
+    _,query_Q = tree_P.query(Q, k=1)
+
+    color_PQ = pc_compressed.rgb[query_P]
+    color_QP = pc_uncompressed.rgb[query_Q]
+
+    MSE_PQ = np.mean((color_PQ - pc_uncompressed.rgb)**2)
+    MSE_QP = np.mean((color_QP - pc_compressed.rgb)**2)
+
+    RMSE_SNN = np.sqrt(0.5 * MSE_PQ + 0.5 * MSE_QP)
+    print(f"RMSE_RGB,NN: {RMSE_SNN}")
+
+def symmetric_rmse():
+    pc_uncompressed = load_pointcloud("sample.xyz")
+    pc_compressed = load_pointcloud("decompressed.xyz")
+
+    distance_error(pc_uncompressed, pc_compressed)
+    color_error(pc_uncompressed, pc_compressed)
+    
 
 if __name__ == "__main__":
     compression_ratio()
